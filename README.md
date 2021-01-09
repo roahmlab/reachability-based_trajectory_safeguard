@@ -1,0 +1,36 @@
+# Welcome to Reachability-based Trajectory Safeguard
+## What does this do?
+This method uses the dynamics model and Reachability computation to ensures the safety of a decision-making agent(human or RL agent). We take advantage of parameterized trajectories and "adjust" the parameter selected by the decision-making agent to a guaranteed safe parameter close by.
+
+### Paper:
+Please cite our [paper](https://arxiv.org/abs/2011.08421) as 
+
+Shao, Y. S., Chao, C., Kousik, S., & Vasudevan, R. (2020). Reachability-based Trajectory Safeguard (RTS): A Safe and Fast Reinforcement Learning Safety Layer for Continuous Control. arXiv preprint arXiv:2011.08421.
+
+#### Abstract:
+Reinforcement Learning (RL) algorithms have achieved remarkable performance in decision making and control tasks due to their ability to reason about long-term, cumulative reward using trial and error. However, during RL training, applying this trial-and-error approach to real-world robots operating in safety critical environment may lead to collisions. 
+To address this challenge, this paper proposes a Reachability-based Trajectory Safeguard (RTS), which leverages trajectory parameterization and reachability analysis to ensure safety during training and testing.
+This method ensures an agent with continuous action space can be trained from scratch safely in real-time.
+By ensuring safety with RTS, this paper demonstrates that the proposed algorithm is not only safe, but can achieve a higher reward in a considerably shorter training time when compared to RTD, RTS with a discrete action space, and a baseline RL algorithm.
+
+## Dependencies
+After cloning all repositories and checking out to the correct branch, add all to MATLAB path and you should be good to go!
+To check if everything is running correctly: run run_highway_testing and use the arrow keys on the figure to drive the car around!
+### All required:
+[RTD](https://github.com/ramvasudevan/RTD) 
+
+[RTD_tutorial](https://github.com/skousik/RTD_tutorial) 
+
+[simulator](https://github.com/skousik/simulator)
+
+[CORA](https://tumcps.github.io/CORA/) checkout to commit 484c54e0d7990312741fddde5a9c9309d3e8808c
+
+[zono_RTD_turtlebot_example](https://github.com/pdholmes/zono_RTD_turtlebot_example)
+
+MATLAB_2020a + Reinforcement Learning Toolbox
+
+### Drone:
+[quadrotor_RTD](https://github.com/skousik/quadrotor_RTD)
+
+
+
