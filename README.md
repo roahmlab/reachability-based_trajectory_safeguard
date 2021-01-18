@@ -14,9 +14,12 @@ This method ensures an agent with continuous action space can be trained from sc
 By ensuring safety with RTS, this paper demonstrates that the proposed algorithm is not only safe, but can achieve a higher reward in a considerably shorter training time when compared to RTD, RTS with a discrete action space, and a baseline RL algorithm.
 
 ## Dependencies
-Step1: Install MATLAB 2020a. Since its RL toolbox is a bit inflexible and so modify it to have a the IsDone flag do a little more than what it does now: Change Line 243 from 'if isdone' to 'if abs(isdone - 1) < 0.1 || abs(isdone - 3) < 0.1 || abs(isdone - 4) < 0.1 || abs(isdone - 5) < 0.1'. Then restart MATLAB.
+Step1: Install MATLAB 2020a. Since its RL toolbox is a bit inflexible and so modify usr/local/MATLAB/R2020a/toolbox/rl/rl/+rl/+env/MATLABEnvironment.m to have a the IsDone flag do a little more than what it does now: Change Line 243 from 'if isdone' to 'if abs(isdone - 1) < 0.1 || abs(isdone - 3) < 0.1 || abs(isdone - 4) < 0.1 || abs(isdone - 5) < 0.1'. Then restart MATLAB.
+
 Step2: Clone all repositories and checking out to the correct branch
+
 Step3: add all to MATLAB path. You should be good to go!
+
 Sanity Check: run run_highway_testing and use the arrow keys on the figure to drive the car around, it should edit your inputs so that it never crashes.
 ### All required:
 [RTD](https://github.com/ramvasudevan/RTD) 
