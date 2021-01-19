@@ -1,7 +1,8 @@
 classdef highway_cruising_agent < RTD_agent_2D
     % Class: highway_cruising_agent < RTD_agent_2D < agent
     %
-    % Highway car closed loop dynamics. may have tracking error
+    % Highway car closed loop dynamics. uses ode45 as integrator for
+    % realism, have color plotting for wheel angle and body heading.
     %
     % based on real car model
     % states: x y phi vx delta
@@ -10,25 +11,20 @@ classdef highway_cruising_agent < RTD_agent_2D
         lane
         lane_des
         % state limits
-        max_speed = 5 ; % m/s
-        min_spd = 1;
         %         % state indices
         speed_index = 4 ;
         
-        % input limits (NOTE these are higher than in the paper as well,
-        % and are based on guesses of what the TurtleBot does in YouTube
-        % videos, where it can spin and accelerate really fast)
+        % input limits 
         max_del_dot = 2; % rad/s
         max_accel = 4.0 ; % m/s^2
         
         wheel_plot_data={};
         wheel_color  = [130 130 130]/255;
-        %PROBLEM HERE . SEAN's model doesn't have actuator saturation
         
         % integrator type, to allow for fixed time step integration
         integrator_type = 'ode45' ; % choose 'ode45' or 'ode4' or 'ode113'
         integrator_time_discretization = 0.01 ; % for ode4
-        desired_initial_condition=[-500; 6; 0; 22; 0];
+        desired_initial_condition=[-500; 6; 0; 22; 0]; %start in the middle lane, speed will be changed by reset code
         
         footprint_vertices_for_plotting = [-2.4,-1.5,-1.5 0 0.3     2    2   2.4 2.4 2  2   0.3 0 -1.5 -1.5 -2.4 -2.4;
                 -0.5,-0.5 -1   -1 -0.5    -0.3 -1   -1  1  1 0.3  0.5 1 1   0.5 0.5 -0.5];
@@ -141,56 +137,18 @@ classdef highway_cruising_agent < RTD_agent_2D
                 A.plot_data.pretty_footprint = fp_data ;
             end
             
-            % make arrow for plot
-            %             V_arrow = R_t*A.arrow_vertices + repmat(p_t,1,3) ;
-            
-            % plot
-            %             if check_if_plot_is_available(A,'footprint')
-            %                 A.plot_data.footprint.Vertices = V_fp' ;
-            %                 A.plot_data.arrow.Vertices = V_arrow' ;
-            %             else
-            % plot footprint
-            %                 fp_data = patch(V_fp(1,:),V_fp(2,:),A.plot_footprint_color,...
-            %                     'EdgeColor',A.plot_footprint_edge_color,...
-            %                     'FaceAlpha',A.plot_footprint_opacity,...
-            %                     'EdgeAlpha',A.plot_footprint_edge_opacity) ;
-            %
-            %                 % plot arrow on footprint
-            %                 arrow_data = patch(V_arrow(1,:),V_arrow(2,:),A.plot_arrow_color,...
-            %                     'EdgeColor',A.plot_arrow_color,...
-            %                     'FaceAlpha',A.plot_arrow_opacity,...
-            %                     'EdgeAlpha',A.plot_arrow_opacity) ;
-            %
-            % save plot data
-            %                 A.plot_data.footprint = fp_data ;
-            %                 A.plot_data.arrow = arrow_data ;
-            %             end
-            
-            %             if A.plot_trajectory_at_time_flag
-            %                 % get the executed path up to the current time
-            %                 X = A.state(A.position_indices,:) ;
-            %                 T_log = A.time <= t ;
-            %                 X = X(:,T_log) ;
-            %
-            %                 % plot it
-            %                 if check_if_plot_is_available(A,'trajectory')
-            %                     A.plot_data.trajectory.XData = X(1,:) ;
-            %                     A.plot_data.trajectory.YData = X(2,:) ;
-            %                 end
-            %                     traj_data = plot_path(X,'g-','LineWidth',2) ;
-            %                     A.plot_data.trajectory = traj_data ;
-            %             end
+         
         end
         function reset(A,state)
             if nargin < 2
-                start_lane = 1;
+                start_lane = 1; %start on second lane
                 y_ini = 4*start_lane + 2;
                 A.lane = start_lane;
                 A.lane_des = start_lane;
                 A.desired_time = zeros(1,0);
                 A.desired_input = zeros(2,0);
                 A.desired_trajectory =zeros(2,0);
-                start_v = 1;%rand*(S.car_max_spd-S.car_min_spd)+S.car_min_spd;
+                start_v = 1;%always start with 1m/s
                 if isprop(A,'desired_initial_condition')
                     A.desired_initial_condition(2) = y_ini;
                     A.desired_initial_condition(4) = start_v;
@@ -203,32 +161,6 @@ classdef highway_cruising_agent < RTD_agent_2D
             end
         end
         
-        %% emergency stop
-        function stop(A,t_stop)
-            
-            %             if nargin < 2
-            %                 t_stop = A.stopping_time ;
-            %             end
-            %
-            %             % get the current speed
-            %             v = A.state(A.speed_index,end) ;
-            %
-            %             % check how long it will take to come to a stop and make the
-            %             % stopping time vector
-            %             t_req_to_stop = v/A.max_accel ;
-            %             T_input = [0, max(t_req_to_stop,t_stop)] ;
-            %
-            %             % generate the input and desired trajectory
-            %             U_input = zeros(2,2) ;
-            %             Z_input = [repmat(A.state(1:3,end),1,2); zeros(1,2)] ;
-            %
-            %             % call move method to perform stop
-            %             % A.LLC.gains = A.LLC.stop_gains ;
-            %             A.move(t_stop,T_input,U_input,Z_input) ;
-            %
-            %             % reset the default gains after stopping
-            %             % A.LLC.gains = A.LLC.default_gains ;
-        end
         %% dynamics
         function dzdt = dynamics(A,t,z,T,U,Z)
             % handle no desired trajectory input
@@ -247,25 +179,7 @@ classdef highway_cruising_agent < RTD_agent_2D
             y_nom = interp1(T,U(2,:),t,'linear') ; % speed
             if vx_nom < 0
                 vx_nom = 0;
-            end
-            %             if length(T)>2
-            %                 if t < T(2)
-            %                     vx_nom = U(1,1);%*(Z(1,1)-(t-0.5))/Z(1,1);
-            %                 elseif t< T(3)
-            %                     vx_nom = vx - 4;
-            %                 end
-            %                 if vx < 0.1
-            %                     vx_nom = 0;
-            %                 end
-            %             else
-            %                 vx_nom = U(1,1);
-            %             end
-            %             end
-            %
-            
-            
-            
-            
+            end            
             
             Tc = 2;
             m = 1558;
@@ -290,7 +204,8 @@ classdef highway_cruising_agent < RTD_agent_2D
             vy = yr*(lr-m*vx^2*lr/(Cr*l));
             
             
-            % saturate the inputs
+            % saturate the inputs, note zonotopes don't have saturation
+            % limits
             if abs(delta_dot) > A.max_del_dot
                 warning('delta saturated')
             end
@@ -304,7 +219,8 @@ classdef highway_cruising_agent < RTD_agent_2D
             dzdt = [vx*cos(psi)-vy*sin(psi);...
                 vx*sin(psi)+vy*cos(psi);...
                 yr;...
-                -Tc/m*vx+Tc*ua;delta_dot];
+                -Tc/m*vx+Tc*ua;...
+                delta_dot];
         end
         
         %% integrator options

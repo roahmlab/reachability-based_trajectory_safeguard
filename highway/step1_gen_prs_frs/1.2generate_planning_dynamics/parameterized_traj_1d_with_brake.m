@@ -1,5 +1,12 @@
-% syms t k_pk kv tf tpk
-%kv - 1 < k_pk< kv+ 0.5
+% Last Edited: Jan 2021
+% Yifei Simon Shao
+% This code generate the reference trajectory for car example in paper
+% takes in desired velocity k_pk, initial velocity kv, initial heading kh
+% and desired latitudinal offset ky.
+% output is T vector for time [0,6]s, 2s to peak velocity, 4s to desired y, 6 seconds to stop. 
+% F is desired control input in each dimension for the car controller
+% Z is the reference state that may or may not be used by the controller
+%syms t k_pk kv tf tpk
 function [T,F,Z]=parameterized_traj_1d_with_brake(k_pk, kv,kh,ky)
 % k_pk = 9 ;
 % kv= 10;
