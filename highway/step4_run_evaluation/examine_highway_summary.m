@@ -1,4 +1,5 @@
-run_highway_testing
+run_highway_testing 
+% somewhat deprecated, haven't tried for a while. if you save summary using rlsimulator.m with eval_flag = 1, they can be nicely plotted here.
 close all;
 compare = 0;
 sim_summary=load('sim_summary_1-6_14-05-01.945.mat');

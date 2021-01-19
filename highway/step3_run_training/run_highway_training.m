@@ -1,9 +1,9 @@
 run_highway_testing
-S.plot_sim_flag = 0;
+S.plot_sim_flag = 1;
 S.eval = 0;
 S.discrete_flag = false;
 %% Setup Environment
-obsInfo = rlNumericSpec([6 1]); % 4*6 + 3 % 3*6+3
+obsInfo = rlNumericSpec([6 1]);
 obsInfo.Name = 'Highway States';
 
 %first arg spd, second lane y
@@ -16,13 +16,13 @@ env = rlFunctionEnv(obsInfo,actInfo,stepfun,reset_fun);
 %% Setup Actor Network
 actorNetwork = [
     imageInputLayer([6 1],'Normalization','none','Name','observation')
-    fullyConnectedLayer(30,'Name','ActorFC1')
+    fullyConnectedLayer(30,'Name','ActorFC1','WeightsInitializer','he')
     reluLayer('Name','ActorRelu1')
-    fullyConnectedLayer(60,'Name','ActorFC2')
+    fullyConnectedLayer(60,'Name','ActorFC2','WeightsInitializer','he')
     reluLayer('Name','ActorRelu2')
-    fullyConnectedLayer(60,'Name','ActorFC3')
+    fullyConnectedLayer(60,'Name','ActorFC3','WeightsInitializer','he')
     reluLayer('Name','ActorRelu3')
-    fullyConnectedLayer(2,'Name','ActorFC4')
+    fullyConnectedLayer(2,'Name','ActorFC4')% last layer tanh so keep using xavier
     tanhLayer('Name','ActorTanh1')];
 lgraph = layerGraph(actorNetwork);
 actorOptions = rlRepresentationOptions('LearnRate',5e-04,'GradientThreshold',1);
@@ -34,18 +34,18 @@ actor = rlDeterministicActorRepresentation(lgraph,obsInfo,actInfo,...
 %% Create Critic Network
 statePath = [
     imageInputLayer([6 1],'Normalization','none','Name','observation')
-    fullyConnectedLayer(30,'Name','CriticStateFC1')
+    fullyConnectedLayer(30,'Name','CriticStateFC1','WeightsInitializer','he')
     reluLayer('Name','CriticRelu1')
-    fullyConnectedLayer(60,'Name','CriticStateFC2')];
+    fullyConnectedLayer(60,'Name','CriticStateFC2','WeightsInitializer','he')];
 
 actionPath = [
     imageInputLayer([2 1],'Normalization','none','Name','action')
-    fullyConnectedLayer(60,'Name','CriticActionFC1','BiasLearnRateFactor',0)];
+    fullyConnectedLayer(60,'Name','CriticActionFC1','BiasLearnRateFactor',0,'WeightsInitializer','he')];
 
 commonPath = [
     additionLayer(2,'Name','add')
     reluLayer('Name','CriticCommonRelu')
-    fullyConnectedLayer(1,'Name','CriticOutput')];
+    fullyConnectedLayer(1,'Name','CriticOutput','WeightsInitializer','he')];
 
 criticNetwork = layerGraph(statePath);
 criticNetwork = addLayers(criticNetwork,actionPath);
@@ -73,7 +73,7 @@ agentOptions.ExplorationModel.Mean = [-2;-2];
 rlagent = rlTD3Agent(actor,critic,agentOptions);
 
 %% Training Agent
-maxepisodes = 35000;
+maxepisodes = 20000;
 maxsteps = ceil(Tf/Ts);
 trainOpts = rlTrainingOptions(...
     'MaxEpisodes', maxepisodes, ...

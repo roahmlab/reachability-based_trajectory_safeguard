@@ -9,7 +9,7 @@ methods
         [~, laneidx] = min(d);
 %         [distf, ~   ] = min(d);
         dt = 2; v_max = 4;
-        ypos = agent_info.state(2,end);
+        ypos = agent_info.state(2,end); % get lane with furthrest car
         if laneidx == 1
             desired_y = 10;
         elseif laneidx == 2

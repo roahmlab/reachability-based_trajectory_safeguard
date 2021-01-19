@@ -1,4 +1,5 @@
 function [x,y,v] = predict_highway_position( K,kv,kh)
+	%predict highway position using reference trajecotry from offline
 ka = 0;
 k_pk = K(1);
 ky = K(2);

@@ -1,6 +1,4 @@
 clear; close all;
-% plot flag
-
 plot_sim_flag = 1;
 plot_AH_flag = 1;
 AH_debug_flag = 0;
@@ -22,22 +20,17 @@ Tf = Ts*150;
 verbose_level = 0;
 
 % HLP choices:
-% 1. Highway HLP: give waypoint same as reward function
-% waypoint far enough on that lane, use fmincon to track the waypoint
+% 1. Highway HLP: give waypoint according to HLP, track using optimization
+% waypoint far enough on lane with obstacle furthest in front.
+% 2. If empty, will optimize reward each step using fmincon.
 HLP = highway_HLP('bounds',bounds,'verbose',verbose_level);
-
-% % 2. RRT* HLP: use RRT* algorithm to proprose waypoints in the workspace
-% % not inside the obstacles, use fmincon to track the waypoint
-% RTD_HLP_grow_tree_mode ='seed';
-% HLP_buffer = 0.1;
-% HLP = RRT_star_HLP('timeout',0.5,'bounds',bounds,...                          %5m/s *2s peak time
-%     'grow_tree_mode',RTD_HLP_grow_tree_mode,'new_node_max_distance_from_agent',5*2,'verbose',verbose_level);
 
 
 % automated from here
 A = highway_cruising_agent('plot_trajectory_at_time_flag', 0);
 A.integrator_type= 'ode45';
-A. desired_initial_condition = [bounds(1)+10; 6; 0; 22; 0];
+                                    %x        y  h  v  delta
+A. desired_initial_condition = [bounds(1)+10; 6; 0; 1; 0];
 W = dynamic_car_world('bounds',bounds,'buffer',world_buffer,...
     'verbose',verbose_level,'goal_radius',goal_radius) ;
 

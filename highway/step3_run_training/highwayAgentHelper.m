@@ -37,7 +37,7 @@ classdef highwayAgentHelper < agentHelper
         t_real_start = [];
         t_proposed_start = [];
         
-        timeout_err_counter = 0;
+%         timeout_err_counter = 0;
         S = [];%simulator pointer so eaiser to access world data
     end
     %% methods
@@ -251,88 +251,9 @@ classdef highwayAgentHelper < agentHelper
             else
                 k = [0;0];
             end
-            
-            
-            
-            
-            
-            %             if AuAyflag == 1% Au change, easy
-            %                     FRS = AH.zono_full.M("u0="+num2str(u0)+"_Au");
-            %                     FRS = FRS{Auidx};
-            %                     [safeK] = AH.find_Au_replace_action(O,agent_state,FRS, 0,AuAyflag); % no mirroring here
-            %                     if ~isempty(safeK)
-            %                         cost_arr = zeros(length(safeK),1);
-            %                         safeK = safeK.*AH.kAug+tbAu(1,Auidx);
-            %                             for i = 1:length(safeK)
-            %                                 c = center(zonotope_slice(FRS.vehRS_save{AH.zono_peak_idx}{1},[12],safeK(i)));
-            %                                 cost_arr(i) = norm(x_des-c(1:2),2);
-            %                             end
-            %                         [~,Kidx] = min(cost_arr);
-            %                         K = [safeK(Kidx);0];
-            %                         break;%break out of while loop
-            %                     else
-            %                         K = [];
-            %                         dAu(Auidx) = 1000;
-            %                     end
-            %                 else %Ay change, more complicated, has mirror or not mirror
-            %                     mirror_flag = AuAyflag-2;
-            %                     if mirror_flag == 0
-            %                         Ayidx = Ayoidx;
-            %                     else
-            %                         Ayidx = Aymidx;
-            %                     end
-            %                     FRS = AH.zono_full.M("u0="+num2str(u0)+"_Ay");
-            %                     FRS = FRS{Ayidx};
-            %                     [safeK] = AH.find_Au_replace_action(O,agent_state,FRS,mirror_flag,AuAyflag);
-            %                     if ~isempty(safeK)
-            %                         cost_arr = zeros(length(safeK),1);
-            %                         if u0 == 15
-            %                             kAygiter = AH.kAygfine;
-            %                         else
-            %                             kAygiter = AH.kAyg;
-            %                         end
-            %                         safeK = safeK.*kAygiter+tbAy(1,Ayidx);
-            %                         if mirror_flag == 1
-            %                             multiplier = -1;
-            %                         else
-            %                             multiplier = 1;
-            %                         end
-            %                         x_des(2)= x_des(2)*multiplier;
-            %                         for i = 1:length(safeK)
-            %                             c = center(zonotope_slice(FRS.vehRS_save{AH.zono_peak_idx}{1},[13],safeK(i)));
-            %                             cost_arr(i) = norm(x_des-c(1:2),2);
-            %                         end
-            %                         [~,Kidx] = min(cost_arr);
-            %                         K = [agent_state(4);safeK(Kidx)* multiplier];
-            %                         break;
-            %                     else
-            %                         K = [];
-            %                         if mirror_flag == 0
-            %                             dAy(Ayidx) = 1000;
-            %                         else
-            %                             dAy_mirror(Ayidx) = 1000;
-            %                         end
-            %                     end
-            %                 end
-            %             end
-            
-            
-            %             [v_peak,exitflag] = AH.trajopt_fmincon(AH,A_con,b_con,agent_state,x_des,tic);
-            %             [K,replaced_flag] = AH.find_replace_action_global(O,agent_state,K_user);
-            %                 if false %AH.plot_flag
-            %                     if ~isempty(K)
-            %                         AH.plot_zono_collide_sliced(O,agent_state,K);
-            %                         %                     plotting_param = struct;
-            %                         %                     plotting_param.O = O;
-            %                         %                     plotting_param.agent_state = agent_state;
-            %                         %                     plotting_param.v_ini_idx = v_ini_idx;
-            %                         %                     plotting_param.y_des_idx = y_des_idx;
-            %                         %                     plotting_param.h_ini_idx = h_ini_idx;
-            %                         %                     plotting_param.del_idx = del_idx;
-            %                         %                     plotting_param.vx_idx = vd_idx;
-            %                         %                     AH.FRS_plotting_param= [AH.FRS_plotting_param; plotting_param];
-            %                     end
-            %                 end
+            %return by adding to class var
+            AH.y_des = k(2)+AH.A.state(2,end);
+            AH.vx_des = k(1);
             
         end
         
@@ -814,7 +735,7 @@ classdef highwayAgentHelper < agentHelper
                     %also this should be turned off during evaluation.
                     % also don't add noise when doing discrete
                     if ~AH.S.eval && AH.flags.discrete_flag == false
-                        sigma = k1_delta/3;
+                        sigma = k1_delta/5;
                         K = sigma*randn(2,1) + K;
                     end
                     

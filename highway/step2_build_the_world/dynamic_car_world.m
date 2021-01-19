@@ -1,4 +1,5 @@
 classdef dynamic_car_world < world
+    % cars are dynamic but for the purpose of the paper, we stay with staic obstacles
     properties
         buffer = 1 ;
         obstacles_unseen
@@ -15,12 +16,11 @@ classdef dynamic_car_world < world
         
         obstacle_size = [4.8, 2] ;
         %         name = 'dyn_obs_world'
-        envCars
+        envCars % this object holds all the obstacle information
         num_cars = 10;
         
         o %this is obstacle centered at 0
         o_no_frs
-        v_array = [22 24 26 28 30 32];
         obs_FRS
         obstacles_old % for collision check
         
@@ -31,19 +31,12 @@ classdef dynamic_car_world < world
         car_max_spd = 5;
         car_min_spd = 1;
         
-        A_MM = 0
-        A_AM = 1
-        A_BM = 2
-        A_HM = 3
-        A_ML = 4
-        A_AL = 5% Not used at all
-        A_BL = 6
-        A_HL = 7 %not used often (<10)
-        A_MR = 8
-        A_AR = 9% not used at all
-        A_BR = 10
-        A_HR = 11 %not used often (<10)
+      
         start_line
+         
+        A_MM = 0;%deprecated action 
+        v_array = [22 24 26 28 30 32];%deprecated v array
+
         
     end
     
@@ -70,37 +63,19 @@ classdef dynamic_car_world < world
                     ' so you can use polyxpoly.'])
             end
         end
-        
-        %% setup % reset function just reset time, setup function should reset everything
-        %         function reset(W,seed)
-        %             if ~exist('seed','var')
-        %                 W.setup();
-        %                 W.reset@world();
-        %             else
-        %                 rng(seed)
-        %                 W.setup();
-        %                 W.reset@world();
-        %             end
-        %         end
+
         function setup(W,seed)
             if exist('seed','var')
                 % to see progress
                 rng(seed)
             end
-            W.placeCars();
-            %             W.envCars = envCars;
+            W.placeCars();% can also change to placefixedCars for debugging
             W.obstacle_history = [];
             % get room bounds
             B = W.bounds ;
             xlo = B(1) ; xhi = B(2) ; ylo = B(3) ; yhi = B(4) ;
             W.bounds_as_polyline = make_box([xhi-xlo,yhi-ylo]) + repmat(mean([xhi xlo ; yhi ylo],2),1,5) ;
             
-            % get obstacle info
-            %                 obs_size = W.obstacle_size_bounds ;
-            %                 obs_rotation_bounds = W.obstacle_rotation_bounds ;
-            
-            % generate start position on left side of room with initial
-            % heading of 0, and make sure it's not too close to the walls
             b = W.buffer ;
             
             xlo = xlo + 2*b ;
@@ -130,21 +105,6 @@ classdef dynamic_car_world < world
                     
                     O = nan(2, 6*N_obs) ; % preallocate obstacle matrix
                     
-                    %                     W.obs_FRS =  cell(30,1);
-                    %                     for i = 1:30
-                    %                         W.obs_FRS {i} = nan(2, 6*N_obs) ;
-                    %                     end
-                    
-                    %                     llo = obs_size(1) ; lhi = obs_size(2) ;
-                    %                     orlo = obs_rotation_bounds(1) ;
-                    %                     orhi = obs_rotation_bounds(2) ;
-                    
-                    %                     xlo = B(1) ; xhi = B(2) ; ylo = B(3) ; yhi = B(4) ;
-                    %                     xlo = xlo + b ; xhi = xhi - b ;
-                    %                     ylo = ylo + b ; yhi = yhi - b ;
-                    
-                    % obstacle rotation
-                    % obstacle base
                     l = W.obstacle_size(1);
                     w = W.obstacle_size(2);
                     
@@ -152,35 +112,17 @@ classdef dynamic_car_world < world
                         -w/2 -w/2 w/2  w/2 -w/2 ] ;
                     W.o_no_frs = o;
                     W.o = cell(length(W.v_array),30); % 10 is time index
-                    %                     for v_idx = 1:length(W.v_array)
-                    %                         for t_idx = 1: 30 % 1 second
-                    %                             d = t_idx*0.1*W.v_array(v_idx);
-                    %                             lo = 1/2*(2)*(t_idx*0.1)^2; %1/2*a*t^2;
-                    %                             ro= 1/2*(2)*(t_idx*0.1)^2;
-                    %                             W.o{v_idx,t_idx} = o+[d-lo d+ro d+ro d-lo d-lo; 0 0 0 0 0];
-                    %                         end
-                    %                     end
+                    
                     %
                     obs_count = 2; %start with second one, first one is ego
                     for idx = 1:6:(6*N_obs-1)
                         c = [W.envCars(obs_count,1); W.envCars(obs_count,3)];
                         O(:,idx:idx+4) = W.o_no_frs + repmat(c,1,5) ;
-                        %                         [~,v_idx] = min(abs(W.v_array-W.envCars(obs_count,2)));
-                        %                         for t_idx = 1:30
-                        %                             W.obs_FRS{t_idx}(:,idx:idx+4) = W.o {v_idx,t_idx} + repmat(c,1,5) ;
-                        %                         end
                         obs_count = obs_count + 1;
                     end
-                    %
-                    %
-                    %                     if isnan(O(1,end))
-                    %                         O = O(:,1:end-1) ;
-                    %                     end
                     
                     W.obstacles = O ;
                     W.obstacles_old = O ;
-                    
-                    %                 W.obstacles_seen = [] ;
                     W.N_obstacles = N_obs ;
                 end
                 
@@ -245,20 +187,17 @@ classdef dynamic_car_world < world
                         W.envCars(i,4) = 0;%S.car_max_spd-rand*(S.car_max_spd-S.car_min_spd)/3;
                         W.envCars(i,5) = laneNum;
                         W.envCars(i,6) = W.A_MM;%act #7 is maintain, for env cars only some actions are available
-                        %action = 1 2 3 4 5  6 7 8 9  10 11 12;
-                        %         L L L L M  M M M R   R  R  R
-                        %        2d d 0 a 2d d m a 2d  d  m  a
                     end
                 end
             end
         end
         
         function update_envCars(W,envCars)
-            
+            % this is for making obstacles dynamic.
             W.envCars = envCars;
             
             
-            W.obstacles_old = W.obstacles;
+            W.obstacles_old = W.obstacles; %uncomment the following for dynamic obstacle to move
             %             obs_count = 2;
             %             for idx = 1:6:(6*W.N_obstacles-1)
             %                 c = [W.envCars(obs_count,1); W.envCars(obs_count,3)];
@@ -286,38 +225,6 @@ classdef dynamic_car_world < world
                 r = 1 ;
             end
             
-            %             O = W.obstacles_unseen ;
-            %
-            %             if ~isempty(O)
-            %                 N = size(O,2)/6 ; % number of obstacles still unseen
-            %
-            %                 indices_seen = [] ;
-            %
-            %                 O_out = [] ;
-            %                 for idx = 1:6:(6*N-1)
-            %                     if size(z,2) == 1
-            %                         dToObs = dist_point_to_polyline(z,O(:,idx:idx+4)) ;
-            %                     else
-            %                         dToObs = poly_poly_dist(z(1,:),z(2,:),...
-            %                             O(1,idx:idx+4),O(2,idx:idx+4)) ;
-            %                     end
-            %                     if any(dToObs <= r)
-            %                         O_out = [O_out, O(:,idx:idx+4),nan(2,1)] ;
-            %                         indices_seen = [indices_seen, idx:idx+5] ;
-            %                     end
-            %
-            %                     % make sure the last index seen is within the length of O
-            %                     if ~isempty(indices_seen) && indices_seen(end) > size(O,2)
-            %                         indices_seen = indices_seen(1:end-1) ;
-            %                     end
-            %                 end
-            
-            % if some obstacles were seen, remove them from O
-            %                 O(:,indices_seen) = [] ;
-            %                 W.obstacles_unseen = O ;
-            %                 W.obstacles_seen = [W.obstacles_seen, O_out] ;
-            %             end
-            
             world_info.obstacles = W.obstacles  ;
             world_info.bounds = W.bounds ;
             world_info.start = W.start ;
@@ -326,11 +233,11 @@ classdef dynamic_car_world < world
             world_info.obs_FRS = W.obs_FRS;
         end
         
-        
-        %% collision check
-        
         function [signed_dist, rel_spd, rel_y, ego_vy] = getCar_abs(W,i,agent_info)
-            
+            %this function gets you the car in absolute position, e.g. 2 is always the car in front of ego in the top lane
+            %1   2
+            %3 e 4
+            %5   6
             cars = W.envCars(2:end,:);
             ego_x  = agent_info.state(1,end);
             ego_v  = agent_info.state(4,end);
@@ -368,9 +275,7 @@ classdef dynamic_car_world < world
             end
             [~,idx] = min(abs(cars(:,1) - ego_x));
             wanted_car = cars(idx,:);
-            %1   2
-            %3 e 4
-            %5   6
+            
             if ~isempty(wanted_car) && abs(wanted_car(1)-ego_x) < W.car_max_vis_dist
                 signed_dist = wanted_car(1)-ego_x;
                 rel_spd = wanted_car(2)-ego_v;
@@ -383,10 +288,10 @@ classdef dynamic_car_world < world
                     rel_spd = W.car_min_spd - ego_v;
                 end
             end
-            rel_y     =  cary - ego_y;
+            rel_y = cary - ego_y;
         end
         function [total_rew]= getRew(W,agent_info,observation)
-            %observation(2)
+            %Reward function that was tuned using magic!
             ego_y = agent_info.state(2, end);
             diff_y = observation(2);
             y_near_obst = diff_y + ego_y;
@@ -398,63 +303,21 @@ classdef dynamic_car_world < world
             elseif (diff_y > 10)
                 Reward_Y = 5 * exp(- 1/((y_near_obst-10)^2+1)) - 2 * abs(abs(diff_y)-10) ;
             end
-            %Reward_Y = 5 * exp(- 1/(observation(2)^2+1));
-            %* exp(- 1/((observation(1)+1)^2 / 8))
-            %Reward_Y
-            %Reward_punish = 30 / ((norm(S.W.goal - [observation(4);observation(5)]) / 1000)+1);
             
-            %                 if (observation(5)==0)
-            %                         Reward_speed = -2;
-            %                 elseif (observation(5)<1.5)
-            %                         Reward_speed = -0.2 *observation(5);
-            %                 elseif (observation(5)>1.5) && (observation(5)<3)
-            %                         Reward_speed = 0.1*(observation(5));
-            %                 else
-            %                         Reward_speed = 0.2 * observation(5);
-            %                 end
             Reward_speed = 4 * exp(- 1./(observation(5)^2+1)) - 3.7;
-%             total_rew = Reward_speed;
             total_rew = (0.8*Reward_speed+Reward_Y-4);  %reward scaled by speed
-        end
-        function Observation = get_ob_deprecated(W,agent_info)
-            Observation = zeros(5,1);
-            min_index = 2;
-            min_dis = inf;
-            min_y = 0;
-            
-            for idx_neighbor = [2,4,6] % observation here can do better, use a hybrid of desired pose and actual pose;
-                %currently using desired pose since it will eventually converge to desired pose and current pose doesnt really matter
-                [rel_dist,rel_v,rel_y, ego_vy]=W.getCar_abs(idx_neighbor,agent_info);
-                if (rel_dist < min_dis)
-                    min_index = idx_neighbor;
-                    min_dis = rel_dist;
-                    min_y = rel_y;
-                end
-            end
-            Observation(1) = min_dis;
-            Observation(2) = min_y;
-            
-            %             iniOb(19:21) = [S.envCars(1,2);S.envCars(1,3);ego_vy];
-            %iniOb(1) = S.W.goal(1) -  S.envCars(1,1);
-            Observation(3) = agent_info.state(1,end); %ego_x
-            Observation(4) = agent_info.state(2,end); %ego_y
-            Observation(5) = agent_info.state(4,end); %ego_vx
-            
+            % always stay below 0 except when doing really well, Reward_Y award points for ego being in the lane with a car furthest in front
         end
         function Observation = get_ob(W,agent_info)
+            % Observation function that was tuned using magic!
+            % Out of the three cars in front, show the closest two cars relative x and y position.
             Observation = zeros(6,1);
             rel_dist_vec = [];
             rel_y_vec = [];
-            for idx_neighbor = [2,4,6] % observation here can do better, use a hybrid of desired pose and actual pose;
-                %currently using desired pose since it will eventually converge to desired pose and current pose doesnt really matter
+            for idx_neighbor = [2,4,6] 
                 [rel_dist,~,rel_y,~]=W.getCar_abs(idx_neighbor,agent_info);
                 rel_dist_vec = [rel_dist_vec;rel_dist];
                 rel_y_vec = [rel_y_vec;rel_y];
-%                 if (rel_dist < min_dis)
-% %                     min_index = idx_neighbor;
-%                     min_dis = rel_dist;
-%                     min_y = rel_y;
-%                 end
             end
             [min_dis, min_idx] = min(rel_dist_vec);
             min_rel_y = rel_y_vec(min_idx);
@@ -467,17 +330,13 @@ classdef dynamic_car_world < world
             Observation(2) = min_rel_y;
             Observation(3) = second_min_dis - min_dis;
             Observation(4) = second_min_rel_y;
-            %             iniOb(19:21) = [S.envCars(1,2);S.envCars(1,3);ego_vy];
-            %iniOb(1) = S.W.goal(1) -  S.envCars(1,1);
-%             Observation(3) = agent_info.state(1,end); %ego_x
-%             Observation(4) = agent_info.state(2,end); %ego_y
             Observation(5) = agent_info.state(4,end); %ego_vx
             Observation(6) = agent_info.state(2,end); %y
             
         end
         
         function out = collision_check(W,agent_info,check_full_traj_flag)
-            
+            % This collision check if for dynamic obstacles, still works for static ones but probably slow.
             % by default, don't check the full trajectory
             if nargin < 3
                 check_full_traj_flag = false ;
@@ -533,7 +392,7 @@ classdef dynamic_car_world < world
                     %                         if ~empty(W.obstacles_old)
                     O_idx = 1;
                     while O_idx + 5 <= size(O_old,2)
-                        if abs(O(1,O_idx)-O_old(1,O_idx)) > 100
+                        if abs(O(1,O_idx)-O_old(1,O_idx)) > 100 % if moved too much, means it dissapreared an reapprearred on the end of the world
                             O(:,O_idx:O_idx+5) = []; O_old(:,O_idx:O_idx+5) = [];
                         else
                             O_idx = O_idx + 6;
@@ -588,18 +447,10 @@ classdef dynamic_car_world < world
                     else
                         out = 0;
                     end
-                    % check if the resulting contour intersects the obstacles
-                    %                         [ci,cyi] = polyxpoly(F(1,:),F(2,:),O(1,:),O(2,:)) ;
-                    
-                    
-                    
                     
                     % increment the time index
                     t_world = t_world + 5 ;
-                    %                     catch
-                    %                         W.vdisp('Check failed, skipping to next portion!',2)
-                    %                         out = -1 ;
-                    %                     end
+
                 end
             end
             
