@@ -204,8 +204,7 @@ classdef highway_cruising_agent < RTD_agent_2D
             vy = yr*(lr-m*vx^2*lr/(Cr*l));
             
             
-            % saturate the inputs, note zonotopes don't have saturation
-            % limits
+            % saturate the inputs
             if abs(delta_dot) > A.max_del_dot
                 warning('delta saturated')
             end

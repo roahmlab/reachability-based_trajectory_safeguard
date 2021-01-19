@@ -1,3 +1,4 @@
+%adapted from https://www.mathworks.com/matlabcentral/fileexchange/31126-2d-minimal-bounding-box
 function [bb, center,heading, gen] = minBoundingBox(X)
 % compute the minimum bounding box of a set of 2D points
 %   Use:   boundingBox = minBoundingBox(point_matrix)
