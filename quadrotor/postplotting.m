@@ -1,5 +1,5 @@
 run_quadrotor_testing
-% AH = quadrotor_agentHelper(A,FRS,tbl,'v_max',5,'a_max',3,'verbose',verbose) ;
+%similar to car, can be used to plot smooth quadrotor motion, somewhat deprecated, have not tried in a while
 close all;
 
 

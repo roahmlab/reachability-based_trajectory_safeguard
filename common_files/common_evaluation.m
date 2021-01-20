@@ -40,30 +40,6 @@ plot_minmax(agentZ,big_avg, window_size,stop_eps,Z_color)
 plot_minmax(agentN,20, window_size,stop_eps,N_color)
 plot_minmax(agentZD,big_avg, window_size,stop_eps,ZD_color)
 
-
-
-
-% plot(epsrewZ(1:endZ),'LineWidth',2,'Color',[0 220/255 0]);
-% if plot_N
-% epsrewN = movmean(agentN.savedAgentResultStruct.TrainingStats.AverageReward,big_avg);
-% epsrewNnoisey = movmax(agentN.savedAgentResultStruct.TrainingStats.AverageReward,small_avg);
-% endN  = min([stop_eps length(epsrewN)]);
-% plot(epsrewN(1:endN),'LineWidth',2,'Color',N_color);
-% pNn = plot(epsrewNnoisey(1:endN),'LineWidth',4,'Color',N_color);
-% pNn.Color(4) = 0.2;
-% end
-% if plot_ZD
-% epsrewZD = movmean(agentZD.savedAgentResultStruct.TrainingStats.AverageReward,big_avg);
-% epsrewZDnoisey = movmean(agentZD.savedAgentResultStruct.TrainingStats.AverageReward,small_avg);
-% endZD = min([stop_eps length(epsrewZD)]);
-% plot(epsrewZD(1:endZD),'LineWidth',2,'Color',ZD_color);
-% pZDn = plot(epsrewZDnoisey(1:endZD),'LineWidth',4,'Color',ZD_color);
-% pZDn.Color(4) = 0.2;
-% end
-
-% pZmin.Color(4) = 0.2;
-
-
 xlim([0 stop_eps])
 % ylim([-80 131])
 % legend('Safety On','Safety Off');
@@ -93,7 +69,12 @@ exp4=load("exp_Agent_RT14R_nohlp.mat");
 exp4= exp4.exp;
 exp5=load("exp_Agent_RT14R.mat");
 exp5= exp5.exp;
-
+% 0: executed as is outputed by RL
+% 1; executed and caused a collision but didn't go through safety check
+% 2: RL output edited by safety layer and was safe
+% 3: RL output edited by safety layer but still was unsafe % should be 0
+% 4: No replacement action found and executing failsafe action/ all 0 command
+% 5: task completed
 [num1_0, num1_1, num1_2, num1_3, num1_4, num1_5, success1, avg1] = tally_up(exp1,num_iter);
 [num2_0, num2_1, num2_2, num2_3, num2_4, num2_5, success2, avg2] = tally_up(exp2,num_iter);
 [num3_0, num3_1, num3_2, num3_3, num3_4, num3_5, success3, avg3] = tally_up(exp3,num_iter);
@@ -107,11 +88,11 @@ rew2 = 0;
 rew3 = 0;
 rew4 = 0;
 rew5 = 0;
-for i = 1:500
-if all_success(i) == 1 || ~only_success_trials
+for i = 1:500 
+if all_success(i) == 1 || ~only_success_trials % when things are stuck, simulation ends early, for that to not happen: intropolate the reward gained from last step to all remaining steps when calculating reward
     if ~only_success_trials && exp1(i).IsDone.Data(end) == 4
     rew1 = rew1 + (200-length(exp1(i).IsDone.Data))*exp1(i).Reward.Data(end);
-    end
+    end % 200 here is the number of evaluation steps allowed
     rew1 = rew1 + sum( exp1(i).Reward.Data);
     if ~only_success_trials && exp2(i).IsDone.Data(end) == 4
     rew2 = rew2 + (200-length(exp2(i).IsDone.Data))*exp2(i).Reward.Data(end);
@@ -178,7 +159,7 @@ for i = 1:500
 if all_success(i) == 1  || ~only_success_trials
     if ~only_success_trials && exp1(i).IsDone.Data(end) == 4
     rew1 = rew1 + (80-length(exp1(i).IsDone.Data))*exp1(i).Reward.Data(end);
-    end
+    end% 80 here is the number of evaluation steps allowed
     rew1 = rew1 + sum( exp1(i).Reward.Data);
     if ~only_success_trials && exp2(i).IsDone.Data(end) == 4
     rew2 = rew2 + (80-length(exp2(i).IsDone.Data))*exp2(i).Reward.Data(end);
@@ -241,7 +222,8 @@ end
 end
 %% function plot minmax
 function plot_minmax(agentZ,movmeansize, window_size,stop_eps,color)
-epsrewZ       = movmean(agentZ.savedAgentResultStruct.TrainingStats.AverageReward,movmeansize);
+epsrewZ       = movmean(agentZ.savedAgentResultStruct.TrainingStats.AverageReward,movmeansize); 
+%% This can also be used for plotting min/max shading, but doesn't show really well so omitted.
 % epsrewZmax = movmax(agentZ.savedAgentResultStruct.TrainingStats.AverageReward,window_size);
 % epsrewZmin = movmin(agentZ.savedAgentResultStruct.TrainingStats.AverageReward,window_size);
 % x_data = 1:length(epsrewZ);

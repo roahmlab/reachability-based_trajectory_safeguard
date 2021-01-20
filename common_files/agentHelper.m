@@ -126,7 +126,7 @@ classdef agentHelper < handle
             end
             AH.flags = flags;
             error('agent helper reset not implemented')
-        end
+        end % following functions should be implemented in the child class
         function K = convert_action_to_parameter(AH,action)
             error('convert_action_to_parameter not implemented')
         end
