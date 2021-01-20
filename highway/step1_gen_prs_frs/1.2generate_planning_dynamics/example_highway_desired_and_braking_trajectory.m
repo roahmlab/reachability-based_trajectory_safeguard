@@ -2,6 +2,14 @@
 close all; clear
 % Note: High fidelity model state in plotted blue in dependency,
 % inconsistent with the color lengend here!
+%make this change in the RTD repo: 
+%   classdef RTD_agent_2D < agent
+%                      A.plot_data.trajectory.XData = X(1,:) ;
+%                      A.plot_data.trajectory.YData = X(2,:) ;
+%                  end
+% -                    traj_data = plot_path(X,'b-') ;
+% +                    traj_data = plot_path(X,'g-','LineWidth',2) ;
+
 
 % Yifei Simon Shao
 % Last edited: Jan 2021

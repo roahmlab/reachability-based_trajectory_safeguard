@@ -38,7 +38,7 @@ Sanity Check: run run_highway_testing and use the arrow keys on the figure to dr
 MATLAB_2020a + Just install all Toolboxes
 
 ### Drone:
-[quadrotor_RTD](https://github.com/skousik/quadrotor_RTD)
+[quadrotor_RTD](https://github.com/roahmlab/RTD_quadrotor_DSCC_2019)
 
 edits on the repo: Change bounds 
 
