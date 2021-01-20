@@ -4,7 +4,7 @@ classdef rlsimulator < handle
         safety_layer %N: none, Z: zonotope safety
         discrete_flag = 0;
         replace_action = 0; % 0 for original rl lib, 1 for replace with new
-        %action, 2 for with punishing reward b/w replaced and original
+        %action, 2 for with punishing reward b/w replaced and original % not sure if this works, not very important
         plot_sim_flag = 1; %plot simulation figure 1
         plot_AH_flag;
         plot_adjust_flag = 0;% plot replacement process figure 2
@@ -135,6 +135,12 @@ classdef rlsimulator < handle
         end
        
         function [IsDone] = determine_isDone_flag(S,collision,action_replaced,stuck,goal_check)
+            % 0: executed as is outputed by RL
+            % 1; executed and caused a collision but didn't go through safety check
+            % 2: RL output edited by safety layer and was safe
+            % 3: RL output edited by safety layer but still was unsafe % should be 0
+            % 4: No replacement action found and executing failsafe action/ all 0 command
+            % 5: task completed
             if collision && action_replaced
                 IsDone = 3;
             elseif collision

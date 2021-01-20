@@ -224,49 +224,9 @@ classdef quadrotor_agentHelper < agentHelper
                     no_replace_action =1;
 
                 end
-            
-             
-%               AH.t_plan_vec = [AH.t_plan_vec toc(replan_start_tic)];
-            
-                % FOR DEBUGGING:
-                % plot3(x_des(1),x_des(2),x_des(3),'ko')
-%             end
-            
-            % move x_des to local coordinates
-            
-%             no_replace_action = 0;
-            
-        % check if the previous plan 
-%                 Ah.vdisp('Replanning',3)
-            
-            
-            
-            
-            % create dummy control input
-%             N_t_des = size(T_des,2) ;
-%             U_des = zeros(4,N_t_des) ;
-%             
-%             % update acceleration estimate
-%             a_est_new = match_trajectories(P.t_plan,T_des,Z_des(7:9,:)) ;
-%             
-%             % update current plan and obstacles
-%             P.current_plan.T_des = T_des ;
-%             P.current_plan.Z_des = Z_des ;
-%             P.current_plan.a_est = Z_des(7:9,:) ;
-%             
-%             % update planner info
-%             P.info.obstacles = [P.info.obstacles, {P.current_obstacles}] ;
-%             P.info.t_start_plan = [P.info.t_start_plan,agent_info.time(end)] ;
-%             P.info.x_0 = [P.info.x_0,x_0] ;
-%             P.info.v_0 = [P.info.v_0,v_0] ;
-%             P.info.a_0 = [P.info.a_0,a_0] ;
-%             P.info.v_peak = [P.info.v_peak,v_peak] ;
-%             P.info.a_est = [P.info.a_est, a_est_new] ;
-%             P.info.T_des = [P.info.T_des, {T_des}] ;
-%             P.info.U_des = [P.info.U_des, {U_des}] ;
-%             P.info.Z_des = [P.info.Z_des, {Z_des}] ;
         end
        function [v_peak,exitflag] = trajopt_sample(AH,A_con,b_con,v_0,a_0,x_0,x_des,replan_start_tic)
+        %use sampling with some randomness here since fmincon takes very long to run
             % create sphere at v_0
 %             sample_start = tic;
             time_limit = AH.t_peak;
@@ -289,7 +249,7 @@ classdef quadrotor_agentHelper < agentHelper
             
             % remove v > v_max
             S_v_log = vecnorm(S_v) <= AH.v_max ;
-            S_v = S_v(:,S_v_log) ;
+            S_v = S_v(:,S_v_log) ;%peak velocity/ parameter array
             
             error_if_out_of_time(replan_start_tic,time_limit)
             
@@ -305,18 +265,16 @@ classdef quadrotor_agentHelper < agentHelper
                 C_log = C_max < 0 ;
                 S_v = S_v(:,C_log) ;
             end
-%             display('constraints eval took')
-%             toc(sample_start)% time took for constraint eval
-%             sample_start = tic;
+
             error_if_out_of_time(replan_start_tic,time_limit)
             
-            % plot3(S_v(1,:),S_v(2,:),S_v(3,:),'b.') ;
+            % plot3(S_v(1,:),S_v(2,:),S_v(3,:),'b.') ; % use this to see all safe peak v choices
             
             % evaluate cost (note that t_peak is hard-coded in here)
             if ~isempty(x_des)
-                p_peak = pos_quadrotor_peak(v_0,a_0,S_v);
+                p_peak = pos_quadrotor_peak(v_0,a_0,S_v); % rtd, optimize dist to waypt
                 J_vals = vecnorm(p_peak - x_des) ;
-            else
+            else% minimize -reward
                 p_peak = pos_quadrotor_peak(v_0,a_0,S_v) + x_0;
                 aginfo = AH.get_agent_info;
                 J_vals = ones(size(p_peak,2),1)*inf;
@@ -326,7 +284,7 @@ classdef quadrotor_agentHelper < agentHelper
                     ob = AH.S.W.get_ob(aginfo);
                     J_vals(future_pos_idx) = -AH.S.W.getRew(aginfo,ob);
 %                     [~, min_idx] = min(J_vals);
-                    if toc(replan_start_tic) > 0.95*time_limit
+                    if toc(replan_start_tic) > 0.95*time_limit % time out early so have time to do other things
                         break;
                     end
                 end
@@ -742,23 +700,6 @@ classdef quadrotor_agentHelper < agentHelper
         
         %% plot trajectory
         function plot_current_trajectory(AH,proposed_and_adjusted)
-            % AH.plot_current_trajectory(t)
-            %
-            % Plot the current trajectory (which is in the
-            % AH.current_trajectory property)
-            
-%             if ~isempty(AH.proposed_ref_Z)
-%                 plot(AH.proposed_ref_Z(end-1,:),AH.proposed_ref_Z(end,:),'k-','LineWidth',3);
-%                 plot(AH.proposed_ref_Z(end-1,:),AH.proposed_ref_Z(end,:),'Color','y','LineWidth',3,'LineStyle','--');
-%                 
-%                 %                 xlim([AH.ref_Z(1,1)-20,AH.ref_Z(1,1)+30]);
-%             end
-%             if ~isempty(AH.ref_Z)
-%                 plot(AH.ref_Z(end-1,:),AH.ref_Z(end,:),'Color',[0 0 0],'LineStyle','-','LineWidth',3);
-%                 %                 plot(AH.ref_Z(end-1,:),AH.ref_Z(end,:),'g--','LineWidth',2);
-%                 
-%                 %                 xlim([AH.ref_Z(1,1)-20,AH.ref_Z(1,1)+30]);
-%             end
             
             if proposed_and_adjusted
                 if ~isempty(AH.proposed_ref_Z)

@@ -24,7 +24,6 @@ Step3: add all to MATLAB path. You should be good to go!
 
 Sanity Check: run run_highway_testing and use the arrow keys on the figure to drive the car around, it should edit your inputs so that it never crashes.
 
-Different Modes: Change S.safety_layer = 'Z' for proposed method, 'Z' with S.discrete_flag = 1 for discrete version of proposed method, 'N' for No safety, 'R' with HLP defined for RTD, 'R' with HLP = [] for reward optimizing RTD
 ### All required:
 [RTD](https://github.com/ramvasudevan/RTD) 
 
@@ -42,6 +41,26 @@ MATLAB_2020a + Just install all Toolboxes
 [quadrotor_RTD](https://github.com/skousik/quadrotor_RTD)
 
 edits on the repo: Change bounds 
+
+## How to use this repo?
+### Level 1 Observe Result: 
+Use common_evaluation.m to see the training plots of the three examples for different methods, also use that file to tally up experiment random simulation result. To visualize how each agent performs, use run_xxx_eval.m and load different agents in agent&exp to look at the behavior of different agents.
+
+### Level 2 Do evaluation :
+Run run_xxx_eval.m till completion and save the experience to observe how good it is
+
+### Level 3 Do training:
+Run run_xxx_training with plot_sim_flag turned off, so it automatically uses parallel pool. WIth 16 parpool workers, Car training takes about 10 hours, Drone 2 hours, and Cartpole in no time.
+
+### Level 4 Do offline FRS computation:
+Car: Run gen_frs_idea5.m to get the FRS file. You may wish to clean it up using clean_up_FRS.m
+
+Drone: The FRS was computed in the depended quadrotor_RTD repository
+
+Cartpole: run gen_cartpole_frs.m, documentation under construction.
+
+### Different Modes: 
+Change S.safety_layer = 'Z' for proposed method, 'Z' with S.discrete_flag = 1 for discrete version of proposed method, 'N' for No safety, 'R' with HLP = [] for reward optimizing RTD, 'R' with HLP defined for RTD.
 
 ## Common Bugs
 ### Most episodes are very short
