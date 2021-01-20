@@ -1,5 +1,5 @@
 classdef highwayAgentHelper < agentHelper
-    %% properties
+    %% This class inherit the agentHelper class to help adjusting parameter choices RL makes, contains agent as a class variable
     properties
         % hard reference bounds for parameters
         upper_bd = 10;% y
@@ -47,7 +47,6 @@ classdef highwayAgentHelper < agentHelper
             AH.y_des = AH.A.state(2,end);
             AH.h_array = AH.zono_full.h_range; % array of range of acceptable parameter values
             AH.y_array = AH.zono_full.y_range;
-            %             AH.v_array = AH.zono_full.v_range;
             AH.v_array = AH.zono_full.v_range;
             AH.zono_full.v_range = AH.zono_full.v_range;
             AH.del_array = AH.zono_full.del_range;
@@ -63,13 +62,9 @@ classdef highwayAgentHelper < agentHelper
                 o.CheckGradients = false;
 %             end
             AH.fminconopt = o;
-            % temp, getrid of zono_full later
+            % zono_full and M are essentially the same data, M is in a cleaner format, outputed in step 1
             AH.M = load("zono_full_7.13_1spd_cleaned.mat");
             AH.M = AH.M.M;
-            
-            %             AH = parse_args(AH,varargin{:}) ;
-            %             AH.A = A;
-            %             AH.zono_full = load(FRS_path);%'zono_full_7.13_1spd.mat');
         end
         
         
@@ -134,6 +129,7 @@ classdef highwayAgentHelper < agentHelper
         %%
         function [k, no_action_found] = gen_param(AH,world_info)
             %return parameter based on optimization result
+            % since optimization based options can sometimes take very long, error out and catch that error and return no action found
             agent_info = AH.get_agent_info();
             agent_state = agent_info.state(:,end);
             x_0 = agent_state(1:2);
@@ -186,7 +182,7 @@ classdef highwayAgentHelper < agentHelper
             %             tb  = AH.M(char("u0="+num2str(u0)+"hi="+num2str(hi)+"delta="+num2str(del)+"_tb"));
             zono_ini = AH.M(char("u0="+num2str(u0)+"hi="+num2str(hi)+"delta="+num2str(del)+"_zono"));
             %             d = vecnorm(repmat(x_des,1,2) - tb(2:3,:));
-            
+            % Make sure states are in bounds
             vi_soft =bound_values(agent_state(4),AH.zono_full.v_range(v_ini_idx)-AH.zono_full.kvig+AH.eps, AH.zono_full.v_range(v_ini_idx)+AH.zono_full.kvig-AH.eps);
             h_soft = bound_values(agent_state(3),AH.zono_full.h_range(h_ini_idx)-AH.zono_full.h_ini_range+AH.eps,AH.zono_full.h_range(h_ini_idx)+AH.zono_full.h_ini_range-AH.eps);
             agent_state(4) = vi_soft;
@@ -201,7 +197,7 @@ classdef highwayAgentHelper < agentHelper
             k_vec = [];
             f_valvec = [];
             timeout_t_pk = 2;
-            for opt_idx = opt_order
+            for opt_idx = opt_order %time them seperately since it can be run in parallel
                 start_tic = tic;
                 %run optimization with cost function
                 % 1. specify cost function %same as RL
@@ -244,6 +240,7 @@ classdef highwayAgentHelper < agentHelper
                     f_valvec = [f_valvec fval];
                 end
             end
+            % find the min out of the two avaliable desired velocity range.
             [~,opt_idx] = min(f_valvec);
             if ~isempty(opt_idx)
                 k = k_vec(:,opt_idx);
@@ -252,7 +249,7 @@ classdef highwayAgentHelper < agentHelper
                 k = [0;0];
             end
             %return by adding to class var
-            AH.y_des = k(2)+AH.A.state(2,end);
+            AH.y_des = k(2)+AH.A.state(2,end); % since y is in local coordinate, change to global coordinate.
             AH.vx_des = k(1);
             
         end
@@ -277,30 +274,6 @@ classdef highwayAgentHelper < agentHelper
         function K = convert_action_to_parameter(AH,action,discrete_flag)
             % called in parent class. differnet for each helper
             delta_struct = struct;
-%             if discrete_flag == true %when discrete flag is on, actions
-%             should be limited, but here we limit the amount of actions in
-%             the action checking step. However, no direct comparison can
-%             be done becuase the current learning algorithm doesn't support
-%             discrete or continuous action space
-%                 if any(newAct == [0 4 8])%M
-%                     delta_struct.vx_des = 0;
-%                 elseif any(newAct == [1])%A
-%                     delta_struct.vx_des = 2;
-%                 elseif any(newAct == [2])%B
-%                     delta_struct.vx_des = -2;
-%                 elseif any(newAct == [3])%H
-%                     delta_struct.vx_des = -4;
-%                 else
-%                 end
-%                 
-%                 if any(newAct == [4])
-%                     delta_struct.y_des = 1;
-%                 elseif any(newAct == [8])
-%                     delta_struct.y_des = -1;
-%                 else
-%                     delta_struct.y_des = 0;
-%                 end
-%             else
                 delta_struct.vx_des = (action(1)+1)/2*6-4;   %%%%%%  vx
                 delta_struct.y_des = action(2)*1;%+1)/2*8+2;    %%%%%%  y
 %             end
@@ -429,8 +402,7 @@ classdef highwayAgentHelper < agentHelper
             AH.t_proposed_start = [];
         end
         function plot_zono_collide_sliced(AH,O,agent_state,v_ini_idx,y_des_idx,h_ini_idx,del_idx,vd_idx,K)
-            
-            % following feature for zonotope
+            % This was the old method to check collision, now used for plotting and debugging
             if AH.plot_flag
                 color = [0 1 0];
             else
@@ -475,16 +447,7 @@ classdef highwayAgentHelper < agentHelper
                 sliced_zono = zonotope_slice(full_zono, [3;6], [vx_des_soft;y_des_soft]);
                 %Slice, Do it now!
                 zono_cur_vert = polygon(project(sliced_zono, [1, 2]))';
-                %                  zono_cur_vert = z_with_err;%(polygon(project(zono_one,[1 2])))'+;
-                %Need to get rid of the extra zonos that have negative velocity
-                %                 zono_cur_vert = [[zono_cur.Vertices(:,1);zono_cur.Vertices(1,1)],[zono_cur.Vertices(:,2);zono_cur.Vertices(1,2)]];
-                
-                % buffer and discretize obstacles
-                %             O_pts = buffer_polygon_obstacles(O,P.buffer,2) ;
-                %                     O_pts = buffer_polygon_obstacles(O,0.1,2) ;% don't buffer since zono already buffered
-                %                 AH.current_obstacles = O ;
-                %             [O_pts] = compute_zonotope_obs(O,...
-                %                 agent_state,P.buffer,P.point_spacing) ;
+
                 dummy_state = agent_state;
                 dummy_state(3) = 0; % since the zonotope here doesn't need to be rotated.
                 O_pts = world_to_local(dummy_state,O);
@@ -492,29 +455,9 @@ classdef highwayAgentHelper < agentHelper
                 %     O_FRS = crop_points_outside_region(0,0,O_FRS,1) ;
                 O_pts = O_pts';
                 
-                
-                % save obstacles
-                %             P.current_obstacles_raw = O ; % input from the world
-                % buffered and discretized
-                
-                %DO NOTHING
-                
-                % choose the current state corresponding zonotope and the
-                % current desired v and desired y zonotope, see if it is
-                % safe, if not, check maintain or break and do one of
-                % those.
-                
-                %find the zono corresponding to current state/ desired
-                %location.
-                %                     if t_idx <= 20
-                %                         local_plot_flag = true;
-                %                     else
-                %                         local_plot_flag = false;
-                %                     end
                 plot_flag = AH.plot_flag;
                 %                 plot_flag = 0;
                 collision_array(t_idx) = hit_obs(dummy_state, O_pts,zono_cur_vert, plot_flag,color);
-                %                 pause(0.05)
             end
         end
         
@@ -797,7 +740,7 @@ classdef highwayAgentHelper < agentHelper
             
         end
         function collision_array = check_zono_collide_halfspace(AH,O,agent_state,v_ini_idx,y_des_idx,h_ini_idx,del_idx,vd_idx)
-            % same as find_replace_action execpt check the full space, for
+            % same as find_replace_action execpt check the full parameter range in a bin, for
             % plotting purposes only
             %             if AH.plot_flag
             % %                 figure(2);clf;hold on;axis equal;
@@ -817,17 +760,12 @@ classdef highwayAgentHelper < agentHelper
                 return
             end
             
-            
-            %             AH.current_obstacles = O ;
-            %             [O_pts] = compute_zonotope_obs(O,...
-            %                 agent_state,P.buffer,P.point_spacing) ;
+
             dummy_state = agent_state;
             dummy_state(3) = 0; % since the zonotope here doesn't need to be rotated.
-            %             [O_pts] = compute_zonotope_obs(O,...
-            %                 dummy_state,P.buffer,P.point_spacing) ;
+
             O_pts = world_to_local(dummy_state,O);
-            % filter out points that are too far away to be reached
-            %     O_FRS = crop_points_outside_region(0,0,O_FRS,1) ;
+
             O_pts = O_pts';
             
             
@@ -841,11 +779,7 @@ classdef highwayAgentHelper < agentHelper
             for t_idx = 1: n
                 %                     if t_idx <= length(zono_peak_one)
                 zono_one = zono_peak_one{t_idx}{1};
-                % %                     else
-                %                         zono_one = zono_stop_one{t_idx- length(zono_peak_one)}{1};
-                %                         color = [0 1 0];
-                %                     end
-                %                     zono_one = zono_one + P.footprint_buffer;
+
                 if isempty(zono_one)
                     error("no such zonotope"+num2str(v_ini_idx)+num2str(y_des_idx)+num2str(h_ini_idx)+num2str(del_idx)+num2str(vd_idx));
                 end
@@ -863,22 +797,9 @@ classdef highwayAgentHelper < agentHelper
                 ego_gen = [[cos(h)*len; sin(h)*len], [sin(-h)*width; cos(-h)*width]];
                 gen = zeros(7,2);gen(1:2,1:2) = ego_gen;
                 err_zono  = zonotope([[center_bb(1);center_bb(2);0;0;0;0;0], gen]);
-                %                         = zonotope([[cur_x_cen(i);cur_y_cen(i)],diag([cur_x_gen(i);cur_y_gen(i)])]);
-                %                             err_zono_clean{i} = zonotope([[0;0],diag(ft_print_gen)])+zonotope([[cur_x_cen_clean(i);cur_y_cen_clean(i)],diag([cur_x_gen_clean(i);cur_y_gen_clean(i)])]);
-                
-                
-                %Slice, Do it now!
+
                 zono_one = (err_zono+zono_one);
-                %                 if P.plot_flag
-                %                     figure(2);
-                %                     plot(zonotope_slice(zono_one, [3;6], [2;-0.4]),[1;2]);
-                %                 end
-                %z_with_err_plot = project(zonotope_slice(zono_one, [3;6], [vx_des_soft;y_des_soft]), [1, 2])
-                %                 if P.plot_flag
-                %                     p4=plotFilled(zono_one,[1,2],'r');
-                %                     p4.FaceAlpha = 0.02;
-                %                 end
-                %                 zono_plot = zonotope_slice(zono_one, ,);
+
                 Z = zono_one.Z;
                 A_obs_array= []; b_obs_array = [];size_array=[]; size_idx = 0;
                 %                  P.vx_des,P.y_des - agent_state(2),agent_state(3),agent_state(4),agent_state(5)
@@ -890,22 +811,10 @@ classdef highwayAgentHelper < agentHelper
                         
                         continue;
                     end
-                    %                         if P.plot_flag
-                    %                             figure(1)
-                    %                             h=(O(1,(obs_idx-1)*6+1:obs_idx*6-1),O(2,(obs_idx-1)*6+1:obs_idx*6-1),'r');
-                    %                              pause(0.2);
-                    %                               delete(h);
-                    %                         end
+
                     obs_zono = local_to_zono(one_obs);
                     obstacle = obs_zono.Z;
-                    %                     if AH.plot_flag
-                    %                         if t_idx == 1
-                    %                             p4=plotFilled(obs_zono,[1,2],'r');
-                    %                             p4.FaceAlpha = 0.05; xlim([-30 70]);
-                    %                         end
-                    %                     end
-                    %Slice, Do it now! 6 , 7 can be sliced later, taking values vx_des_soft;y_des_soft
-                    %Need to get rid of the extra zonos that have negative velocity
+
                     
                     c = Z(obs_dim, 1);
                     G = Z(:, 2:end);
@@ -937,10 +846,8 @@ classdef highwayAgentHelper < agentHelper
             g_k = [k1g; k2g];
             k1_user= vx_des_soft;k2_user=y_des_soft;
             lambdas = ([k1_user; k2_user] - c_k)./g_k;
-            
-            
+    
             lims = [k1c - k1g, k1c - k1g, k1c + k1g, k1c + k1g, k1c - k1g; k2c - k2g, k2c + k2g, k2c + k2g, k2c - k2g, k2c - k2g];
-            %             plot(lims(1, :)', lims(2, :)', 'k', 'LineWidth', 2);
             
             % grid over parameter space
             k1_sample = linspace(k1c - k1g, k1c + k1g, 20);
@@ -986,9 +893,7 @@ classdef highwayAgentHelper < agentHelper
                 
                 scatter(k1_user, k2_user,200,'y','filled','MarkerEdgeColor',[0  0  0],'LineWidth',2);
                 figure(1)
-                
-                
-                %                     delete(h);
+    
             end
         end
     end

@@ -36,6 +36,10 @@ W = dynamic_car_world('bounds',bounds,'buffer',world_buffer,...
 
 AH = highwayAgentHelper(A,'zono_full_7.13_1spd.mat',HLP,'t_move',t_move,'t_failsafe_move',t_failsafe_move,'eps',0.001,'verbose',verbose_level,'plot_flag',AH_debug_flag);
 S = rlsimulator(AH,W,'plot_sim_flag',plot_sim_flag, 'safety_layer','Z','plot_AH_flag',plot_AH_flag);
+% here are a few safety layer flags:
+%Z: Zonotope to ensure safety, proposed method
+%N: No specific safety layer, will crash
+%R: RTD, either optimize reward function if you specify HLP = [] or does planning and trajecotry optimization to waypoint.
 AH.S = S;
 random_inputs = false; %true for user inputs using arrow keys, false for random inputs
 
