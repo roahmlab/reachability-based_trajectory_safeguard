@@ -21,6 +21,9 @@ classdef agentHelper < handle
         verbose = 0 ;
         plot_data
         name = 'agentHelper' ;
+
+        time_vec = [];
+        timeout_err_counter
     end
     %% methods
     methods
@@ -62,13 +65,13 @@ classdef agentHelper < handle
                 %then optimize in trajecotry space, doesn't need learning.
                 %can supply a naive HLP that always output the goal position for a direct comparison with RL. 
                 [k, no_replace_action] = AH.gen_param(world_info);
-                AH.y_des = k(2)+AH.A.state(2,end);
-                AH.vx_des = k(1);
-                
 %                 [k_replaced, replace_distance, ~]= AH.adjust(k,world_info);
                 replace_distance = 0;
                 action_replaced = 0;
             end
+
+            AH.time_vec =[AH.time_vec toc(start_plan_tic)];
+
             if ~no_replace_action 
                 AH.stuck_count = 0;
                 [AH.T, AH.U, AH.Z] = AH.gen_ref(k);
