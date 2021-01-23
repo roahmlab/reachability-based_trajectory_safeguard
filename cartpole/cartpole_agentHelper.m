@@ -547,7 +547,7 @@ classdef cartpole_agentHelper < agentHelper
             %             end
         end
         
-       function [v_peak,fval,exitflag] = trajopt_sample(AH,A_con,b_con,s_con,v_0,a_0,x_0,vd_idx,replan_start_tic)
+       function [v_peak,fval,exitflag] = trajopt_sample(AH,A_con,b_con,s_con,vd_idx)
             % create sphere at v_0
            
             % check if the quadrotor has stopped too many times and reduce
@@ -562,7 +562,7 @@ classdef cartpole_agentHelper < agentHelper
             k_sample = linspace(lb,ub,9);
             c_k = [kpkc];
             g_k = [kpkg];
-            lambdas = (k_sample - c_k)./g_k; % given a parameter, get coefficients on k_slc_G generators
+%             lambdas = (k_sample - c_k)./g_k; % given a parameter, get coefficients on k_slc_G generators
             avaliable_action_set = [];
 
             k_start_idx = 3;
@@ -615,7 +615,7 @@ classdef cartpole_agentHelper < agentHelper
                K = [];
             else
                 for i = 1:length(avaliable_action_set)
-                    reward = AH.predict_cartpole_reward(avaliable_action_set(i),v_0,a_0,AH.finish_count);
+                    reward = AH.predict_cartpole_reward(avaliable_action_set(i));
                     J_vals = [J_vals; -reward];
                 end
                 
@@ -661,7 +661,7 @@ classdef cartpole_agentHelper < agentHelper
             end
         end
         
-        function [c, ceq, gc, gceq] = eval_zono_cartpole_cons(AH, K, A_con, b_con, s_con,vd_idx,start_tic, timeout_t_pk)
+        function [c, ceq, gc, gceq] = eval_zono_cartpole_cons(AH, K, A_con, b_con, s_con,vd_idx)
             kpkc = AH.zono_full.kpeak(vd_idx);kpkg = AH.zono_full.kpkg;
             %             k2c = AH.y_array(y_des_idx);k2g = AH.zono_full.kyg;
             c_k = [kpkc];
@@ -690,7 +690,7 @@ classdef cartpole_agentHelper < agentHelper
 %                 error('Timed out while evaluating constraint function!')
 %             end
         end
-        function Reward = predict_cartpole_reward(AH,K,kv,ka,finishcount)
+        function Reward = predict_cartpole_reward(AH,K)
 %             world_info = struct;
 %             world_info.obstacles = [-5 -3 NaN 3 5];
 %             stop_sim = 0;
@@ -794,7 +794,7 @@ classdef cartpole_agentHelper < agentHelper
                 if AH.optmal_opt == "fmincon"
                     cost = @(K) AH.cartpole_negative_reward_cost(K,agent_state(2),agent_state(5),start_tic, timeout_t_pk,AH.finish_count);% one future step cost
 
-                    cons = @(K) AH.eval_zono_cartpole_cons(K, A_con, b_con, s_con,kpkidx,start_tic, timeout_t_pk) ;% first opt_idx is for low spd, second for high spd
+                    cons = @(K) AH.eval_zono_cartpole_cons(K, A_con, b_con, s_con,kpkidx) ;% first opt_idx is for low spd, second for high spd
 
                     %%%%%%%
                     %                 vd_lb = AH.zono_full.v_des_range(opt_idx) -  AH.zono_full.kvdg;
@@ -807,14 +807,14 @@ classdef cartpole_agentHelper < agentHelper
                     ub = [AH.zono_full.kpeak(kpkidx)+AH.zono_full.kpkg];
                     %                 lb =[vd_lb; y_lb];
                     %                 ub =[vd_ub; y_ub];
-                    k_sample = linspace(lb,ub,10);
+%                     k_sample = linspace(lb,ub,10);
                     %fprintf('Current opt_idx = %d', opt_idx);
-                    constraint_feasible = [];
-
-                    for i = 1: length(k_sample)
-                        constraint_feasible = [constraint_feasible any(cons(k_sample(i)) < 0)];
-                    end
-                    constraint_feasible;
+%                     constraint_feasible = [];
+% 
+%                     for i = 1: length(k_sample)
+%                         constraint_feasible = [constraint_feasible any(cons(k_sample(i)) < 0)];
+%                     end
+%                     constraint_feasible;
                     initial_guess = zeros(1,1) ;
 
 
@@ -824,7 +824,7 @@ classdef cartpole_agentHelper < agentHelper
                     [k,fval,exitflag,~] = fmincon(cost, initial_guess, [], [],...
                             [], [], lb, ub, cons, AH.fminconopt) ;
                 elseif AH.optmal_opt == "sample"
-                    [k,fval,exitflag] = trajopt_sample(AH,A_con,b_con,s_con, agent_state(2),agent_state(5),agent_state(1),kpkidx,start_tic);
+                    [k,fval,exitflag] = trajopt_sample(AH,A_con,b_con,s_con,kpkidx);
                 else
                     error('Wrong sampling option');
                 end

@@ -1,0 +1,8 @@
+ToDo For Cartpole:
+1. Get rid(put them in deprecated and remove from path) of files that are in the RL libaray. I see AbstractAgent, AbstractPolicy, MATLABEnvironment,rlsimulator etc...
+2. Get rid of files that do not produce the final result, (put them in deprecated and remove from path)
+3. put useful mat files in a FRS folder
+4. rename dummy_cartpole_agent to cartpole_agent.
+5. Make the visulization flag better!!!!(It's a pain to use right now)
+6. Clean up your code: Don't let matlab highlight anything red for you. especially redundent function argument and giving multiple variables same value like here(a = 1; b = a; c = b) 
+7. For each!! file, give a description of what it does, whats input and output. Read through each line, delete all chunks of commented code that is never used and does not do anything useful. Delete unuseful, or wrong comments. Put your name and last edited date on top of all the cartpole files. Split into steps. If it is not obviously clear what it does, comment in line. See highway folder here for reference: https://github.com/roahmlab/reachability-based_trajectory_safeguard/tree/main/highway

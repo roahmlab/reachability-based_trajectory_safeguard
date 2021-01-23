@@ -1,5 +1,5 @@
 clear all;
-A = dummy_cartpole_agent('integrator_type','ode45');
+A = cartpole_agent('integrator_type','ode45');
 AH = cartpole_agentHelper(A,'cartpole_frs_9_22.mat','safety_layer','Z');
 Env= cartpole_env(AH);
 num_range = 5;

@@ -20,7 +20,7 @@ Step1: Install MATLAB 2020a. Since its RL toolbox is a bit inflexible and so mod
 
 Step2: Clone all repositories and checking out to the correct branch
 
-Step3: add all to MATLAB path. You should be good to go!
+Step3: add all to MATLAB path. Remove rl folder from path if you are running car or drone example. You should be good to go!
 
 Sanity Check: run run_highway_testing and use the arrow keys on the figure to drive the car around, it should edit your inputs so that it never crashes.
 

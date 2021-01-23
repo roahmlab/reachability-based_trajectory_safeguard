@@ -9,7 +9,7 @@ reset_fun = @()Env.reset();
 stepfun = @(action,LoggedSig)Env.step(action);
 
 
-env = rlFunctionEnvNew(obsInfo,actInfo,stepfun,reset_fun);
+env = rlFunctionEnv(obsInfo,actInfo,stepfun,reset_fun);
 
 % plotter = CartPoleVisualizerLimitedTrackNew(env,A);
 % plotter.plot();

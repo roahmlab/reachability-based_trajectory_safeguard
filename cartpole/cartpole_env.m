@@ -11,9 +11,11 @@ classdef cartpole_env < handle
         XThreshold = 3.5;    %2.4;
         max_force = -inf;
         max_x_acc = -inf;
+        plottor_value = 0;
         
         plottor;
-        plottor_flag = 0;
+        plottor_flag = 1;
+       
         
         % Define the error bound
         error_bound_min = [];
@@ -78,10 +80,12 @@ classdef cartpole_env < handle
         function [Observation,Reward,IsDone,LoggedSignals] = step(this,action)
             
             LoggedSignals = [];
-%             if this.plottor_flag == 0
-%                 this.plottor = CartPoleVisualizerLimitedTrackNew(this);
-%                 this.plottor_flag = this.plottor_flag +1;
-%             end
+            if this.plottor_flag == 1
+                if this.plottor_value == 0
+                    this.plottor = rl.env.viz.CartPoleVisualizer(this);
+                    this.plottor_value = this.plottor_value +1;
+                end
+            end
             % Get action
 %             this.AH.kv = this.v;
 %             this.AH.ka = this.a;
@@ -139,7 +143,9 @@ classdef cartpole_env < handle
                 IsDone = 0;
             end
             
-%             this.plottor.plot();
+            if this.plottor_flag == 1
+                this.plottor.plot();
+            end
             
             % Get reward
             Reward = this.getReward(state,IsDone);
