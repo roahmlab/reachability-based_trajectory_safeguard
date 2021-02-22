@@ -1,6 +1,6 @@
 run_cartpole_testing
 %% Setup Environment
-AH.flags.safety_layer = 'R';
+AH.flags.safety_layer = 'Z';
 
 obsInfo = rlNumericSpec([5 1]);
 % numObservations = obsInfo.Dimension(1);
@@ -14,7 +14,7 @@ stepfun = @(action,LoggedSig)Env.step(action);
 env = rlFunctionEnv(obsInfo,actInfo,stepfun,reset_fun);
 
 %
-load('Agent163_Z_rms22.mat');
+load('Agent_CZ_163rms22.mat');
 % load('Agent_CN_300.mat');
 tic
 simOptions = rlSimulationOptions('MaxSteps',100,'NumSimulations',500,'UseParallel',0);

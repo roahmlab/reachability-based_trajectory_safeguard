@@ -1,6 +1,7 @@
 # Welcome to Reachability-based Trajectory Safeguard
 ## What does this do?
 This method uses the dynamics model and Reachability computation to ensures the safety of a decision-making agent(human or RL agent). We take advantage of parameterized trajectories and "adjust" the parameter selected by the decision-making agent to a guaranteed safe parameter close by.
+![Online Operation Image](figures/online_saferl.png)
 
 ### Paper:
 Please cite our [paper](https://arxiv.org/abs/2011.08421) as 
@@ -22,7 +23,7 @@ Step2: Clone all repositories and checking out to the correct branch
 
 Step3: add all to MATLAB path. Remove rl folder from path if you are running car or drone example. You should be good to go!
 
-Sanity Check: run run_highway_testing and use the arrow keys on the figure to drive the car around, it should edit your inputs so that it never crashes.
+Sanity Check: run run_highway_testing and use the arrow keys on the figure to drive the car around, it should edit your inputs so that it never crashes. To run_highway_eval, please make sure to disable the manual command in run_highway_testing
 
 ### All required:
 [RTD](https://github.com/ramvasudevan/RTD) 
@@ -35,7 +36,20 @@ Sanity Check: run run_highway_testing and use the arrow keys on the figure to dr
 
 [zono_RTD_turtlebot_example](https://github.com/pdholmes/zono_RTD_turtlebot_example)
 
-MATLAB_2020a + Just install all Toolboxes
+MATLAB_2020a 
+    'Control System Toolbox'
+    'Optimization Toolbox'
+    'Mapping Toolbox'
+    'Deep Learning Toolbox'
+    'Symbolic Math Toolbox'
+    'Statistics and Machine Learning Toolbox'
+    'Reinforcement Learning Toolbox'
+    'Parallel Computing Toolbox'
+    'MATLAB Parallel Server'(don't think this is a toolbox)
+    'Polyspace Bug Finder'
+    'Filter Design HDL Coder'
+    'Simulink'
+    'Stateflow'
 
 ### Drone:
 [quadrotor_RTD](https://github.com/roahmlab/RTD_quadrotor_DSCC_2019)

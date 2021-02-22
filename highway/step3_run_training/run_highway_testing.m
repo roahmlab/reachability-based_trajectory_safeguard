@@ -46,7 +46,7 @@ random_inputs = false; %true for user inputs using arrow keys, false for random 
 S.eval = 0; %turn on evaluation so summary will be saved, and action will not have random components
 % to the episode number
 
-if true
+if false
     for j = 1:10
         S.reset();
         for i = 1: 150

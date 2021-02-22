@@ -42,6 +42,8 @@ classdef agentHelper < handle
             % pass in a action from the main file with action range of [-1,1]
             % scale properly and move the agent accordingly, checks for
             % action safety if safety layer is on
+            start_plan_tic = tic;
+            
             k = AH.convert_action_to_parameter(action,AH.flags.discrete_flag);
             stop_sim = 0;
             if strcmp(AH.flags.safety_layer, 'Z') %zonotope safety mode, do learning and then use the agent

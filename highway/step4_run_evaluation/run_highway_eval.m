@@ -4,8 +4,8 @@ run_highway_testing
 
 S.eval = 1; % if eval save episode as file
 S.plot_sim_flag = 1;
-AH.plot_flag = 0; % for paper plotting, usually keep off
-S.plot_AH_flag = 1; % AH plotting, toggle for reference, turn off when AH.plot_flag is on;
+AH.plot_flag = 1; % for paper plotting, usually keep off
+S.plot_AH_flag = 0; % AH plotting, toggle for reference, turn off when AH.plot_flag is on;
 S.epscur = 1;%61;this is for video generating episode
 
 S.discrete_flag = false;
@@ -24,7 +24,7 @@ env = rlFunctionEnv(obsInfo,actInfo,stepfun,reset_fun);
 
 %%
 S.safety_layer = 'Z';
-load('Agent_D7Super2_Z1026.mat');
+load('Agent_RT15ZNoise_19240.mat');
 %  load('Agent_D7Super2_ZD857.mat');
 %  load('Agent_D7Super2_N1203.mat');
 total_sim_tic = tic;
