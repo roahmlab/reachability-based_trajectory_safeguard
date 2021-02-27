@@ -1,6 +1,6 @@
 # Welcome to Reachability-based Trajectory Safeguard
 ## What does this do?
-This method uses the dynamics model and Reachability computation to ensures the safety of a decision-making agent(human or RL agent). We take advantage of parameterized trajectories and "adjust" the parameter selected by the decision-making agent to a guaranteed safe parameter close by.
+This method uses the dynamics model and Reachability computation to ensures the safety of a decision-making agent(human or RL agent). We take advantage of parameterized trajectories and "adjust" the parameter selected by the decision-making agent to a guaranteed safe parameter close by. [Here](https://youtu.be/j5h3JzHboMk) is a gentle introduction.
 ![Online Operation Image](figures/online_saferl.png)
 
 ### Paper:
