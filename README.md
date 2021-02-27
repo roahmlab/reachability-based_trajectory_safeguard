@@ -74,7 +74,7 @@ Drone: The FRS was computed in the depended quadrotor_RTD repository
 Cartpole: run gen_cartpole_frs.m, documentation under construction.
 
 ### Different Modes: 
-Change S.safety_layer = 'Z' for proposed method, 'Z' with S.discrete_flag = 1 for discrete version of proposed method, 'N' for No safety, 'R' with HLP = [] for reward optimizing RTD, 'R' with HLP defined for RTD.
+In run_***_eval.m, change S.safety_layer = 'RTS' or 'Z' for proposed method, 'RTS' with S.discrete_flag = 1 for discrete version of proposed method, 'NoSafety' or 'N' for No safety, 'RTD' or 'R' with HLP = [] for reward optimizing RTD, 'RTD' with HLP defined for original RTD.
 
 ## Common Bugs
 ### Most episodes are very short

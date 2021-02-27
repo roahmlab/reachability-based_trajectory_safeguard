@@ -2,7 +2,7 @@ run_quadrotor_testing
 S.eval = 1;
 S.plot_AH_flag = 1;
 S.plot_sim_flag = 1;
-S.safety_layer = 'Z';
+S.safety_layer = 'RTS'; %NoSafety, RTD
 S.epscur =1;% plotting episode =  38;
 S.discrete_flag = 0;
 %%

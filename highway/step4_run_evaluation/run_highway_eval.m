@@ -23,7 +23,7 @@ env = rlFunctionEnv(obsInfo,actInfo,stepfun,reset_fun);
 
 
 %%
-S.safety_layer = 'Z';
+S.safety_layer = 'RTS'; %NoSafety, RTD
 load('Agent_RT15ZNoise_19240.mat');
 %  load('Agent_D7Super2_ZD857.mat');
 %  load('Agent_D7Super2_N1203.mat');

@@ -2,6 +2,7 @@
 close all; clear
 N_color = [252,141,98]/255;
 ZD_color = [100,130,255]/255;
+% ZD_color = [18,37,252]/255;
 Z_color = ([102,250,140]-10)/255; 
 %% car
 plot_N = true;
@@ -19,8 +20,8 @@ plot_ZD = true;
 agentN =  load('Agent_D7Super2_N2988.mat');% keep crashing in very few steps, not training
 agentZD =  load('Agent_D7ZDSuper2_2414.mat');
 agentZ =  load('Agent_D7ZSuper2_4625.mat');
-big_avg = 50;
-window_size = 50;
+big_avg = 70;
+window_size = 70;
 stop_eps =1500;
 
 %% cartpole
@@ -36,9 +37,10 @@ stop_eps =300;
 % plot(movmean(agentZ.savedAgentResultStruct.TrainingStats.AverageReward,40));
 % legend('Safety on',' Safety off')
 figure('Name','Training Plot','Position',[1 1 600 300]) ; clf;hold on;
-plot_minmax(agentZ,big_avg, window_size,stop_eps,Z_color)
 plot_minmax(agentN,big_avg, window_size,stop_eps,N_color)
+plot_minmax(agentZ,big_avg, window_size,stop_eps,Z_color)
 plot_minmax(agentZD,big_avg, window_size,stop_eps,ZD_color)
+
 
 xlim([0 stop_eps])
 % ylim([-80 131])
@@ -57,7 +59,7 @@ print(h,'trainingPlot.pdf','-painters' ,'-dpdf','-r0')
 %%
 %% tally up car experience and compare
 num_iter = 500;
-only_success_trials = false;
+terminate_at_four = false;
 
 exp1=load("exp_Agent_RT15ZNoise_19240.mat");
 exp1= exp1.exp;
@@ -67,7 +69,7 @@ exp3=load("exp_Agent_RT14N_17890.mat");
 exp3= exp3.exp;
 exp4=load("exp_Agent_RT14R_nohlp.mat");
 exp4= exp4.exp;
-exp5=load("exp_Agent_RT14R.mat");
+exp5=load("exp_Agent_RT15R_HLP.mat");
 exp5= exp5.exp;
 % 0: executed as is outputed by RL
 % 1; executed and caused a collision but didn't go through safety check
@@ -89,53 +91,72 @@ rew3 = [];
 rew4 = [];
 rew5 = [];
 for i = 1:500 
-if all_success(i) == 1 || ~only_success_trials % when things are stuck, simulation ends early, for that to not happen: intropolate the reward gained from last step to all remaining steps when calculating reward
-    if ~only_success_trials && exp1(i).IsDone.Data(end) == 4
+% if all_success(i) == 1 || ~only_success_trials % when things are stuck, simulation ends early, for that to not happen: intropolate the reward gained from last step to all remaining steps when calculating reward
+    if ~terminate_at_four && exp1(i).IsDone.Data(end) == 4
         rew1 = [rew1 (200-length(exp1(i).IsDone.Data))*exp1(i).Reward.Data(end)+sum(exp1(i).Reward.Data)];
     else
         rew1 = [rew1  sum(exp1(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowed
    
-    if ~only_success_trials && exp2(i).IsDone.Data(end) == 4
+    if ~terminate_at_four && exp2(i).IsDone.Data(end) == 4
         rew2 = [rew2 (200-length(exp2(i).IsDone.Data))*exp2(i).Reward.Data(end)+sum(exp2(i).Reward.Data)];
     else
         rew2 = [rew2  sum(exp2(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowedif ~only_success_trials && exp1(i).IsDone.Data(end) == 4
     
-    if ~only_success_trials && exp3(i).IsDone.Data(end) == 4
+    if ~terminate_at_four && exp3(i).IsDone.Data(end) == 4
         rew3 = [rew3 (200-length(exp3(i).IsDone.Data))*exp3(i).Reward.Data(end)+sum(exp3(i).Reward.Data)];
     else
         rew3 = [rew3  sum(exp3(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowedif ~only_success_trials && exp1(i).IsDone.Data(end) == 4
-    if ~only_success_trials && exp4(i).IsDone.Data(end) == 4 
+    if ~terminate_at_four && exp4(i).IsDone.Data(end) == 4 
         rew4 = [rew4 (200-length(exp4(i).IsDone.Data))*exp4(i).Reward.Data(end)+sum(exp4(i).Reward.Data)];
     else
         rew4 = [rew4  sum(exp4(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowedif ~only_success_trials && exp1(i).IsDone.Data(end) == 4
-    if ~only_success_trials && exp5(i).IsDone.Data(end) == 4
+    if ~terminate_at_four && exp5(i).IsDone.Data(end) == 4
         rew5 = [rew5 (200-length(exp5(i).IsDone.Data))*exp5(i).Reward.Data(end)+sum(exp5(i).Reward.Data)];
     else
         rew5 = [rew5 sum(exp5(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowed
-end
+% end
 end
 mean(rew1)
 std(rew1)
+min(rew1)
+max(rew1)
 mean(rew2)
 std(rew2)
+min(rew2)
+max(rew2)
 mean(rew3)
 std(rew3)
+min(rew3)
+max(rew3)
 mean(rew4)
 std(rew4)
+min(rew4)
+max(rew4)
 mean(rew5)
 std(rew5)
-
-    
+min(rew5)
+max(rew5)
+  figure(1);
+subplot(5,1,1);
+histogram(rew1);
+subplot(5,1,2);
+histogram(rew2);
+subplot(5,1,3);
+histogram(rew3);
+subplot(5,1,4);
+histogram(rew4);
+subplot(5,1,5);
+histogram(rew5);  
 % rew5/sum(all_success)
 
 %%
 num_iter = 500;
-only_success_trials = false;
+terminate_at_four = true;
 exp1=load("exp_Agent_D7Super2_Z1026.mat");
 exp1= exp1.exp;
 exp2=load("exp_Agent_D7Super2_ZD857.mat");
@@ -158,51 +179,72 @@ rew3 = [];
 rew4 = [];
 rew5 = [];
 for i = 1:500 
-if all_success(i) == 1 || ~only_success_trials % when things are stuck, simulation ends early, for that to not happen: intropolate the reward gained from last step to all remaining steps when calculating reward
-    if ~only_success_trials && exp1(i).IsDone.Data(end) == 4
+% if all_success(i) == 1 || ~terminate_at_four % when things are stuck, simulation ends early, for that to not happen: intropolate the reward gained from last step to all remaining steps when calculating reward
+    if ~terminate_at_four && exp1(i).IsDone.Data(end) == 4
         rew1 = [rew1 (80-length(exp1(i).IsDone.Data))*exp1(i).Reward.Data(end)+sum(exp1(i).Reward.Data)];
     else
         rew1 = [rew1  sum(exp1(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowed
    
-    if ~only_success_trials && exp2(i).IsDone.Data(end) == 4
+    if ~terminate_at_four && exp2(i).IsDone.Data(end) == 4
         rew2 = [rew2 (80-length(exp2(i).IsDone.Data))*exp2(i).Reward.Data(end)+sum(exp2(i).Reward.Data)];
     else
         rew2 = [rew2  sum(exp2(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowedif ~only_success_trials && exp1(i).IsDone.Data(end) == 4
     
-    if ~only_success_trials && exp3(i).IsDone.Data(end) == 4
+    if ~terminate_at_four && exp3(i).IsDone.Data(end) == 4
         rew3 = [rew3 (80-length(exp3(i).IsDone.Data))*exp3(i).Reward.Data(end)+sum(exp3(i).Reward.Data)];
     else
         rew3 = [rew3  sum(exp3(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowedif ~only_success_trials && exp1(i).IsDone.Data(end) == 4
-    if ~only_success_trials && exp4(i).IsDone.Data(end) == 4 
+    if ~terminate_at_four && exp4(i).IsDone.Data(end) == 4 
         rew4 = [rew4 (80-length(exp4(i).IsDone.Data))*exp4(i).Reward.Data(end)+sum(exp4(i).Reward.Data)];
     else
         rew4 = [rew4  sum(exp4(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowedif ~only_success_trials && exp1(i).IsDone.Data(end) == 4
-    if ~only_success_trials && exp5(i).IsDone.Data(end) == 4
+    if ~terminate_at_four && exp5(i).IsDone.Data(end) == 4
         rew5 = [rew5 (80-length(exp5(i).IsDone.Data))*exp5(i).Reward.Data(end)+sum(exp5(i).Reward.Data)];
     else
         rew5 = [rew5 sum(exp5(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowed
-end
+% end
 end
 mean(rew1)
 std(rew1)
+min(rew1)
+max(rew1)
 mean(rew2)
 std(rew2)
+min(rew2)
+max(rew2)
 mean(rew3)
 std(rew3)
+min(rew3)
+max(rew3)
 mean(rew4)
 std(rew4)
+min(rew4)
+max(rew4)
 mean(rew5)
 std(rew5)
+min(rew5)
+max(rew5)
+figure(1);
+subplot(5,1,1);
+histogram(rew1);
+subplot(5,1,2);
+histogram(rew2);
+subplot(5,1,3);
+histogram(rew3);
+subplot(5,1,4);
+histogram(rew4);
+subplot(5,1,5);
+histogram(rew5);
 
     
 %% tally up cartpole
 num_iter = 500;
-only_success_trials = false;
+terminate_at_four = false;
 exp1=load("exp_Agent_Cartpole_RNaive.mat");
 exp1= exp1.exp;
 exp2=load("exp_Agent_Zrms22.mat");
@@ -224,20 +266,20 @@ for i = 1:num_iter
     success1 = [success1 determine_cartpole_success(exp1(i),limit)];
     success2 = [success2 determine_cartpole_success(exp2(i),limit)];
     success3 = [success3 determine_cartpole_success(exp3(i),limit)];
-
-    if ~only_success_trials && exp1(i).IsDone.Data(end) == 4
+% length(exp1(i).IsDone.Data)
+    if ~terminate_at_four && exp1(i).IsDone.Data(end) == 4
         rew1 = [rew1 (100-length(exp1(i).IsDone.Data))*exp1(i).Reward.Data(end)+sum(exp1(i).Reward.Data)];
     else
         rew1 = [rew1  sum(exp1(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowed
 
-    if ~only_success_trials && exp2(i).IsDone.Data(end) == 4
+    if ~terminate_at_four && exp2(i).IsDone.Data(end) == 4
         rew2 = [rew2 (100-length(exp2(i).IsDone.Data))*exp2(i).Reward.Data(end)+sum(exp2(i).Reward.Data)];
     else
         rew2 = [rew2  sum(exp2(i).Reward.Data)];
     end % 200 here is the number of evaluation steps allowedif ~only_success_trials && exp1(i).IsDone.Data(end) == 4
 
-    if ~only_success_trials && exp3(i).IsDone.Data(end) == 4
+    if ~terminate_at_four && exp3(i).IsDone.Data(end) == 4
         rew3 = [rew3 (100-length(exp3(i).IsDone.Data))*exp3(i).Reward.Data(end)+sum(exp3(i).Reward.Data)];
     else
         rew3 = [rew3  sum(exp3(i).Reward.Data)];
@@ -245,10 +287,23 @@ for i = 1:num_iter
 end
 mean(rew1)
 std(rew1)
+min(rew1)
+max(rew1)
 mean(rew2)
 std(rew2)
+min(rew2)
+max(rew2)
 mean(rew3)
 std(rew3)
+min(rew3)
+max(rew3)
+figure(1);
+subplot(3,1,1);
+histogram(rew1);legend('R')
+subplot(3,1,2);
+histogram(rew2);legend('Z')
+subplot(3,1,3);
+histogram(rew3);legend('N')
 %%
 function success = determine_cartpole_success(exp,limit)
 sin_limit = sin(deg2rad(limit));
@@ -272,10 +327,10 @@ x_data = 1:length(epsrewZ);
 x2 = [x_data, fliplr(x_data)];
 inBetween = [(epsrewZ-epsrewZstd)', fliplr((epsrewZ+epsrewZstd)')];
 pf = fill(x2, inBetween, color);
-pf.FaceAlpha = 0.2;
+pf.FaceAlpha = 0.3;
 pf.EdgeAlpha = 0;
 endZ  = min([stop_eps length(epsrewZ)]);
-plot(epsrewZ(1:endZ),'LineWidth',2,'Color',color);
+plot(epsrewZ(1:endZ),'LineWidth',3,'Color',color);
 % pZminmax =plot(x_data(1:endZ*2),epsrewZminmax(1:endZ*2),'--','LineWidth',5,'Color',color);
 % pZmin =plot(epsrewZmin(1:endZ),'--','LineWidth',1,'Color',Z_color);
 end

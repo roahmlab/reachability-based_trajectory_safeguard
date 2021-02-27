@@ -46,7 +46,7 @@ classdef agentHelper < handle
             
             k = AH.convert_action_to_parameter(action,AH.flags.discrete_flag);
             stop_sim = 0;
-            if strcmp(AH.flags.safety_layer, 'Z') %zonotope safety mode, do learning and then use the agent
+            if strcmp(AH.flags.safety_layer, 'Z') || strcmp(AH.flags.safety_layer, 'RTS')%zonotope safety mode, do learning and then use the agent
                 [k, replace_distance, replaced_flag]= AH.adjust(k,world_info);
                 if replaced_flag == 0
                     no_replace_action = 0;
@@ -58,11 +58,11 @@ classdef agentHelper < handle
                     no_replace_action = 1;
                     action_replaced = 1;
                 end
-            elseif strcmp(AH.flags.safety_layer, 'N')%no safety but still has learning
+            elseif strcmp(AH.flags.safety_layer, 'N') || strcmp(AH.flags.safety_layer, 'NoSafety')%no safety but still has learning
                 replace_distance = 0;
                 action_replaced = 0;
                 no_replace_action = 0;
-            elseif strcmp(AH.flags.safety_layer, 'R')%RTD mode, use any agent, does not use agent output, just run planning
+            elseif strcmp(AH.flags.safety_layer, 'R') || strcmp(AH.flags.safety_layer, 'RTD')%RTD mode, use any agent, does not use agent output, just run planning
                 %uses a high level planner(HLP), to supply waypoint and
                 %then optimize in trajecotry space, doesn't need learning.
                 %can supply a naive HLP that always output the goal position for a direct comparison with RL. 
